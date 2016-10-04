@@ -1,0 +1,72 @@
+códigos:
+
+em var:
+
+  MemoryStatus: TMemoryStatus;
+  MBTotal : Integer;
+  PCUso : Integer;
+  PCLivre : Integer;
+  MBUso : Integer;
+  MBLivre : Integer;
+---------------------------------------------------------
+no timer 1:
+
+begin
+  MBTotal := ((MemoryStatus.dwTotalPhys div 1024) div 1024) + 1;
+  PCUso := (MemoryStatus.dwMemoryLoad);
+  MBLivre := ((MemoryStatus.dwAvailPhys div 1024) div 1024) + 1;
+  PCLivre := 100 - PCUso;
+  MBUso := MBTotal - MBLivre;
+
+if (Bar1.Position < PCUso) or (Bar2.Position < PCLivre) then
+  begin
+    if Bar1.Position < PCUso then Bar1.Position := Bar1.Position + 1;
+    if Bar2.Position < PCLivre then Bar2.Position := Bar2.Position + 1;
+  end
+  else
+  timer1.Enabled := false;
+end;
+
+no evento on create do form1:
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+Form1.Left := Monitor.Width div 2 - Form1.Width div 2;
+Form1.Top := ((Monitor.Height div 2) - (Form1.Height div 2));
+Label1.Left := Form1.Width div 2 - Label1.Width div 2;
+bar1.Position := 0;
+bar2.Position := 0;
+  MemoryStatus.dwLength:= sizeof(MemoryStatus);
+  GlobalMemoryStatus(MemoryStatus);
+  //1- MB de memória fisica
+  Label1.Caption := 'Memória Total : ' +
+    IntToStr(((MemoryStatus.dwTotalPhys div 1024) div 1024) + 1) + ' MB';
+
+  //3- % de memória em uso
+  Label3.Caption := 'Em uso : ' +
+    IntToStr(MemoryStatus.dwMemoryLoad) + ' %';
+
+  //4- MB livres de memória
+  Label4.Caption := 'Livre : ' +
+    IntToStr(((MemoryStatus.dwAvailPhys div 1024) div 1024) + 1) + ' MB';
+
+  MBTotal := ((MemoryStatus.dwTotalPhys div 1024) div 1024) + 1;
+  PCUso := (MemoryStatus.dwMemoryLoad);
+  MBLivre := ((MemoryStatus.dwAvailPhys div 1024) div 1024) + 1;
+  PCLivre := 100 - PCUso;
+  MBUso := MBTotal - MBLivre;
+
+  Label2.Caption := 'Em uso : ' + IntToStr(MBUso) + ' MB';
+  Label5.Caption := 'Livre : ' + IntToStr(PCLivre) + ' %';
+  //Bar1.Position := PCUso;
+  //Bar2.Position := PCLivre;
+  Timer1.Enabled := true;
+
+No envento on close do form1:
+
+Form1 := nil;
+Action := caFree;
+
+no evento onkeydown: do form1
+
+if Key = VK_Escape then form1.Close;
